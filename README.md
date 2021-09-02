@@ -1,5 +1,8 @@
 # CartpoleRL
 This repository serves the cartpole project for the Dynamic Programming course at Universita' di Brescia. 
+There are two main files:
+1. RLexample_with_model provides a DP algorithm based on a model
+2. RLexample_without_model uses neural networks to learn and is not based on a specific model
 
 # Cart Pole environment description
 ## Description
