@@ -25,14 +25,16 @@ described by Barto, Sutton, and Anderson
 
 ## Actions
 
-   | Type: | Discrete(2) |
-   | Num   | Action |
-   | 0     | Push cart to the left |
-   | 1     | Push cart to the right |
-    Note: The amount the velocity that is reduced or increased is not
-    fixed; it depends on the angle the pole is pointing. This is because
-    the center of gravity of the pole increases the amount of energy needed
-    to move the cart underneath it
+> Type:  Discrete(2)
+
+| Num   | Action                    |
+| ----- | ------------------------- |
+| 0     | Push cart to the left     |
+| 1     | Push cart to the right    |
+Note: The amount the velocity that is reduced or increased is not
+fixed; it depends on the angle the pole is pointing. This is because
+the center of gravity of the pole increases the amount of energy needed
+to move the cart underneath it
 
 ## Rewards
 Reward is 1 for every step taken, including the termination step
