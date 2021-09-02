@@ -10,12 +10,33 @@ import numpy as np
 
 
 def stupidpolicy(observation):
+    """
+    This function implements a very simple policy
+    which pushes the cart in the direction opposite
+    to the pole rotation.
+
+    @param observation      Is an array with four elements
+    describing the current state. In order:
+    (i) cart position; (ii) cart velocity;
+    (iii) pole angle (iv) pole angular velocity
+    """
     cpos, cvel, pang, pvel = observation
     action = 1 if pvel > 0 else 0
     return action
 
 
 def apprx_costFunction(observation):
+    """
+    The function provides a simple cost approximation.
+    Cost is computed as a non-linear function of the
+    distance to the limits of the pole angle and of the
+    cart position.
+
+    @param observation      Is an array with four elements
+    describing the current state. In order:
+    (i) cart position; (ii) cart velocity;
+    (iii) pole angle (iv) pole angular velocity
+    """
     cpos, cvel, pang, pvel = observation
     cost = 1/(0.418 - np.abs(pang)) + 1/(4.8 - np.abs(cpos))
     return cost
@@ -23,7 +44,16 @@ def apprx_costFunction(observation):
 
 def calc_CostToGo(observation, iterations):
     """
-    Recursively calculate the cost to go
+    Recursively calculate the cost to go starting from a given state.
+    The number of iterations is fixed by the iterations parameter.
+
+    @param observation      Is an array with four elements
+    describing the current state. In order:
+    (i) cart position; (ii) cart velocity;
+    (iii) pole angle (iv) pole angular velocity
+
+    @param iterations       The number of recursive iterations
+    this can be thought as the depth of the lookahead tree
     """
     action_space = np.array([0, 1])
     new_states = [apprx_calcNewState(observation,
@@ -34,25 +64,31 @@ def calc_CostToGo(observation, iterations):
         return np.min(immediate_costs)
     else:
         return np.min([immed_cost + calc_CostToGo(newstate, iterations - 1)
-                       for immed_cost, newstate in 
+                       for immed_cost, newstate in
                        zip(immediate_costs, new_states)])
 
 
 def apprx_calcNewState(observation, action):
     """
     Calculate new state, given the current state
-    and the action.
+    and the action. The calculation is approximate
+
     @param observation Is an array with four elements
-    describing the current state
+    describing the current state. In order:
+    (i) cart position; (ii) cart velocity;
+    (iii) pole angle (iv) pole angular velocity
+
     @param action Takes value in the set [0, 1]
     """
     cpos, cvel, pang, pvel = observation
     new_cpos = cpos + 0.1*cvel
     if np.abs(new_cpos) > 4.8:
+        # Do now allow cart positions beyond +/-4.8
         new_cpos = np.sign(new_cpos)*4.8
     new_cvel = cvel + 0.1*(2 * action - 1)
     new_pang = pang + 0.1*pvel
     if np.abs(new_pang) > 0.418:
+        # Do not allow pole angles beyond +/-0.418
         new_pang = np.sign(new_pang)*0.418
     new_pvel = pvel + 0.1*(- 2 * action + 1)
     new_observation = np.array([new_cpos, new_cvel,
@@ -62,7 +98,14 @@ def apprx_calcNewState(observation, action):
 
 def plcy_1(observation):
     """
-    Policy 1.
+    Implements the policy. For each possible action calculates the
+    immediate costs and cost_to_go. Then selects the action with minimum
+    cost
+
+    @param observation      Is an array with four elements
+    describing the current state. In order:
+    (i) cart position; (ii) cart velocity;
+    (iii) pole angle (iv) pole angular velocity
     """
     action_space = np.array([0, 1])
     new_states = [apprx_calcNewState(observation,
@@ -80,10 +123,10 @@ if __name__ == '__main__':
     tot_reward = 0
     while True:
         env.render()
-        # action = env.action_space.sample()     # take a random action
-        # action = stupidpolicy(observation)
-        action = plcy_1(observation)
-        observation, reward, done, info = env.step(action)
+        # actn = env.action_space.sample()    # take a random action
+        # actn = stupidpolicy(observation)    # applies a simple policy
+        actn = plcy_1(observation)            # applies a policy with lookahead
+        observation, reward, done, info = env.step(actn)
         tot_reward += reward
         if done:
             print("[msg] >> Episode terminated with score:", tot_reward)
