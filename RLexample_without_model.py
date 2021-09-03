@@ -24,7 +24,7 @@ class RL_nomodel():
                 tf.keras.layers.Dense(2)])
             self.policynetwork.compile()
             # NN input is the current observation
-            # NN output is the action probability
+            # NN output is the value
             self.valuenetwork = tf.keras.models.Sequential([
                 tf.keras.layers.Dense(64, input_dim=4, activation='relu'),
                 tf.keras.layers.Dense(64, activation='relu'),
@@ -37,10 +37,10 @@ class RL_nomodel():
         for episode in self.exprnce:
             start_obs, actn, _ , _ = episode[0]
             reward = np.sum([step[2] for step in episode])
-            x_train.append([start_obs])
+            x_train.append(start_obs)
             y_tmp = self.policynetwork.predict(np.reshape(start_obs, [1, 4]))
             y_tmp[0][actn] = reward
-            y_train.append(y_tmp)
+            y_train.append(y_tmp[0])
         self.policynetwork.fit(x_train, y_train)
 
     def actn_predict(self, observation):
