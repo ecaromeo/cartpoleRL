@@ -34,7 +34,7 @@ class RL_nomodel():
             start_obs, actn, _ , _ = episode[0]
             reward = np.sum([step[2] for step in episode])
             x_train.append(np.reshape(np.append(start_obs, actn), [1, 5]))
-            y_train.append(reward)
+            y_train.append(np.reshape(reward,[1, 1]))
         self.policynetwork.fit(np.array([x_train]), np.array([y_train]), epochs=10, verbose=0)
 
     def actn_predict_explr(self, observation):
@@ -97,5 +97,5 @@ class RL_nomodel():
 
 if __name__ == '__main__':
     myRLmodel = RL_nomodel()
-    myRLmodel.run(2,5)
+    myRLmodel.run(10,10)
     myRLmodel.result(2)
