@@ -22,7 +22,8 @@ class RL_nomodel():
                 tf.keras.layers.Dense(64, input_dim=4, activation='relu'),
                 tf.keras.layers.Dense(64, activation='relu'),
                 tf.keras.layers.Dense(2)])
-            self.policynetwork.compile()
+            self.policynetwork.compile(optimizer='adam',
+                                       loss=tf.keras.losses.MeanSquaredError())
             # NN input is the current observation
             # NN output is the value
             self.valuenetwork = tf.keras.models.Sequential([
@@ -41,7 +42,7 @@ class RL_nomodel():
             y_tmp = self.policynetwork.predict(np.reshape(start_obs, [1, 4]))
             y_tmp[0][actn] = reward
             y_train.append(y_tmp[0])
-        self.policynetwork.fit(x_train, y_train)
+        self.policynetwork.fit(np.array([x_train]), np.array([y_train]), epochs=10)
 
     def actn_predict(self, observation):
         return (self.actn_space[np.argmax(
@@ -50,19 +51,21 @@ class RL_nomodel():
                 else random.randint(0,1))
 
     def run(self):
-        done = False
-        for i in range(1000):
-            observation = self.env.reset()
-            self.exprnce.append(list())
-            tot_reward = 0
-            while not done:
-                self.env.render()
-                actn = self.actn_predict(observation)
-                newobservation, reward, done, info = self.env.step(actn)
-                self.exprnce[i].append([observation, actn, reward, newobservation])
-                tot_reward += reward
-                observation = newobservation
-            print("[msg] >> Episode terminated with score:", tot_reward)
+        for i in range(20):
+            self.exprnce = list()
+            for j in range(20):
+                done = False
+                observation = self.env.reset()
+                self.exprnce.append(list())
+                tot_reward = 0
+                while not done:
+                    # self.env.render()
+                    actn = self.actn_predict(observation)
+                    newobservation, reward, done, info = self.env.step(actn)
+                    self.exprnce[j].append([observation, actn, reward, newobservation])
+                    tot_reward += reward
+                    observation = newobservation
+                print("[msg] >> Episode terminated with score:", tot_reward)
             self.mdl_train()
         self.env.close()
 
