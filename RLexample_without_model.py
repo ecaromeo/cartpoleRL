@@ -16,7 +16,7 @@ class RL_nomodel():
             self.exprnce = list()
             self.hist = list()
             self.actn_space = np.array([0, 1])
-            self.exploration_threshold = 0.2
+            self.exploration_threshold = 0.3
             # NN input is the current observation and action
             # NN output is the reward associated
             self.policynetwork = tf.keras.models.Sequential([
@@ -31,11 +31,11 @@ class RL_nomodel():
         x_train = list()
         y_train = list()
         for episode in self.exprnce:
-            start_obs, actn, _ , _ = episode[0]
-            reward = np.sum([step[2] for step in episode])
-            x_train.append(np.reshape(np.append(start_obs, actn), [1, 5]))
-            y_train.append(np.reshape(reward,[1, 1]))
-        self.policynetwork.fit(np.array([x_train]), np.array([y_train]), epochs=10, verbose=0)
+            final_reward = np.sum([step[2] for step in episode])
+            for step, i in zip(episode, range(len(episode))):
+                x_train.append(np.reshape(np.append(step[0], step[1]), 5))
+                y_train.append(np.reshape(final_reward - i, 1))
+        self.policynetwork.fit(np.array(x_train), np.array(y_train), epochs=10, verbose=0)
 
     def actn_predict_explr(self, observation):
         return (self.actn_space[np.argmax([
@@ -81,6 +81,7 @@ class RL_nomodel():
         plt.xlabel('Policy iterations')
         plt.ylabel('average reward')
         plt.show()
+        input('Enter any key to proceed..')
         for i in range(iterations):
             done = False
             observation = self.env.reset()
