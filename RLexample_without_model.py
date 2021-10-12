@@ -33,9 +33,13 @@ class RL_nomodel():
         for episode in self.exprnce:
             final_reward = np.sum([step[2] for step in episode])
             for step, i in zip(episode, range(len(episode))):
-                x_train.append(np.reshape(np.append(step[0], step[1]), 5))
-                y_train.append(np.reshape(final_reward - i, 1))
+                x_train.append(np.reshape(np.append(self.nrmlize(step[0]), step[1]), 5))
+                y_train.append(np.reshape((final_reward - i)/1000, 1))
         self.policynetwork.fit(np.array(x_train), np.array(y_train), epochs=10, verbose=0)
+    
+    def nrmlize(self, obs):
+        cpos, cvel, pang, pvel = obs
+        return [cpos/4.8, cvel/10, pang/0.418, pvel/10]
 
     def actn_predict_explr(self, observation):
         return (self.actn_space[np.argmax([
@@ -59,14 +63,12 @@ class RL_nomodel():
                 observation = self.env.reset()
                 self.exprnce.append(list())
                 tot_reward = 0
-                actn = self.actn_predict_explr(observation)    # First action with exploration
                 while not done:
-                    # self.env.render()
+                    actn = self.actn_predict_explr(self.nrmlize(observation))    # First action with exploration
                     newobservation, reward, done, info = self.env.step(actn)
                     self.exprnce[j].append([observation, actn, reward, newobservation])
                     tot_reward += reward
                     observation = newobservation
-                    actn = self.actn_predict(observation)    # Subsequent action  have no exploration
                 print("[msg] >> Episode terminated with score:", tot_reward)
             self.mdl_train()
             self.hist.append(self.exprnce)
@@ -98,5 +100,5 @@ class RL_nomodel():
 
 if __name__ == '__main__':
     myRLmodel = RL_nomodel()
-    myRLmodel.run(10,10)
+    myRLmodel.run(100,10)
     myRLmodel.result(2)
