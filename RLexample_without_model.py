@@ -7,6 +7,8 @@ Author: Romeo Casesa
 import gym
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras import regularizers
+from keras.models import load_model
 import random
 import matplotlib.pyplot as plt
 
@@ -19,13 +21,16 @@ class RL_nomodel():
             self.exploration_threshold = 0.3
             # NN input is the current observation and action
             # NN output is the reward associated
-            self.policynetwork = tf.keras.models.Sequential([
-                tf.keras.layers.Dense(32, input_dim=5, activation='relu'),
-                tf.keras.layers.Dense(32, activation='relu'),
-                tf.keras.layers.Dense(32, activation='relu'),
-                tf.keras.layers.Dense(1)])
-            self.policynetwork.compile(optimizer='adam',
-                                       loss=tf.keras.losses.MeanSquaredError())
+            try:
+                self.policynetwork = load_model("policyNet")
+            except:
+                self.policynetwork = tf.keras.models.Sequential([
+                    tf.keras.layers.Dense(32, input_dim=5, activation='relu'),
+                    tf.keras.layers.Dense(32, activation='relu'),
+                    # tf.keras.layers.Dense(32, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
+                    tf.keras.layers.Dense(1)])
+                self.policynetwork.compile(optimizer='adam',
+                                        loss=tf.keras.losses.MeanSquaredError())
 
     def mdl_train(self):
         x_train = list()
@@ -69,9 +74,10 @@ class RL_nomodel():
                     self.exprnce[j].append([observation, actn, reward, newobservation])
                     tot_reward += reward
                     observation = newobservation
-                print("[msg] >> Episode terminated with score:", tot_reward)
+                print("[msg] >> Policy iteratin,",i ,"episode", j, "terminated with score:", tot_reward)
             self.mdl_train()
             self.hist.append(self.exprnce)
+            self.policynetwork.save('policyNet')
 
     def close_env(self):
         self.env.close()
@@ -100,5 +106,5 @@ class RL_nomodel():
 
 if __name__ == '__main__':
     myRLmodel = RL_nomodel()
-    myRLmodel.run(100,10)
+    myRLmodel.run(5,20)
     myRLmodel.result(2)
