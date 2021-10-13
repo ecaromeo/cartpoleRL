@@ -27,9 +27,9 @@ class RL_nomodel():
             self.policynetwork = load_model("policyNet")
         except OSError:     # ..otherwise create a new one.
             self.policynetwork = tf.keras.models.Sequential([
-                tf.keras.layers.Dense(64, input_dim=5, activation='relu'),
-                tf.keras.layers.Dense(64, activation='relu'),
-                tf.keras.layers.Dense(64, activation='relu'),
+                tf.keras.layers.Dense(16, input_dim=5, activation='relu'),
+                tf.keras.layers.Dense(16, activation='relu'),
+                tf.keras.layers.Dense(16, activation='relu'),
                 tf.keras.layers.Dense(1)])
             self.policynetwork.compile(
                 optimizer='adam',
@@ -47,6 +47,7 @@ class RL_nomodel():
             final_reward = np.sum([step[2] for step in episode])
             # For each trajectory loop through the individual steps
             for step, i in zip(episode, range(len(episode))):
+            # for step, i in zip(episode[4:], range(4, len(episode))):
                 x_train.append(np.reshape(
                     np.append(self.nrmlize(step[0]), step[1]), 5))
                 y_train.append(np.reshape(
@@ -92,23 +93,23 @@ class RL_nomodel():
                 observation = self.env.reset()
                 # To increase chanses of starting with a non-favorable
                 # condition I take four random steps
-                self.env.step(random.randint(0, 1))
-                self.env.step(random.randint(0, 1))
-                self.env.step(random.randint(0, 1))
-                observation, _, _, _ = self.env.step(random.randint(0, 1))
+                # self.env.step(random.randint(0, 1))
+                # self.env.step(random.randint(0, 1))
+                # self.env.step(random.randint(0, 1))
+                # observation, _, _, _ = self.env.step(random.randint(0, 1))
 
                 self.exprnce.append(list())
                 tot_reward = 0  # Total reward of trajectory
                 while not done:     # While the simulation does not end
                     # apply policy to decide next action
                     actn = self.actn_predict_explr(self.nrmlize(observation),
-                                                   0.1)
+                                                   0.3)
                     newobservation, reward, done, _ = self.env.step(actn)
                     self.exprnce[j].append([observation, actn,
                                             reward, newobservation])
                     tot_reward += reward
                     observation = newobservation
-                print("[msg] >> Policy iteratin,", i+1, "episode", j+1,
+                print("[msg] >> Policy iteration,", i+1, "episode", j+1,
                       "terminated with score:", tot_reward)
             if i != (plcy_iter-1):
                 self.mdl_train()    # Policy improvement
@@ -155,7 +156,7 @@ class RL_nomodel():
             tot_reward = 0
             while not done:
                 self.env.render()   # Render environment
-                actn = self.actn_predict_explr(observation, -1)
+                actn = self.actn_predict_explr(self.nrmlize(observation), -1)
                 newobservation, reward, done, info = self.env.step(actn)
                 tot_reward += reward
                 observation = newobservation
@@ -166,6 +167,6 @@ if __name__ == '__main__':
     myRLmodel = RL_nomodel()    # Initialize class
     # Train the policyNet on XX policy iterations each
     # with YY simulations
-    myRLmodel.train(5, 50)
+    myRLmodel.train(5, 10)
     myRLmodel.run(2, True)      # Run XX simulations and show results
     myRLmodel.close_env()       # Close the simulation engine.
