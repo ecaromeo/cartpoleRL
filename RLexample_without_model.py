@@ -21,6 +21,7 @@ class RL_nomodel():
         self.exprnce = list()
         self.hist = list()
         self.actn_space = np.array([0, 1])
+        self.horizon = 20
         # NN input is the current observation and action
         # NN output is the reward associated
         try:    # Load neural network if present..
@@ -48,10 +49,17 @@ class RL_nomodel():
             # For each trajectory loop through the individual steps
             for step, i in zip(episode, range(len(episode))):
             # for step, i in zip(episode[4:], range(4, len(episode))):
+                if i >= 500 - self.horizon:
+                    break   # Do not penalize for ending at 500
                 x_train.append(np.reshape(
                     np.append(self.nrmlize(step[0]), step[1]), 5))
+                # Consider a limited horizon
+                if (len(episode) - i) >= self.horizon:
+                    rwrd = 1
+                else:
+                    rwrd = (len(episode) - i)/self.horizon
                 y_train.append(np.reshape(
-                    (final_reward - i)/1000, 1))
+                    rwrd, 1))
         # Train policyNet with new data
         self.policynetwork.fit(np.array(x_train), np.array(y_train),
                                epochs=100, verbose=0)
@@ -167,6 +175,6 @@ if __name__ == '__main__':
     myRLmodel = RL_nomodel()    # Initialize class
     # Train the policyNet on XX policy iterations each
     # with YY simulations
-    myRLmodel.train(5, 10)
+    myRLmodel.train(5, 20)
     myRLmodel.run(2, True)      # Run XX simulations and show results
     myRLmodel.close_env()       # Close the simulation engine.
